@@ -12,6 +12,7 @@ import Account from "./pages/Account";
 import Login from "./pages/Login";
 import PageNotFound from "./pages/PageNotFound";
 import AppLayout from "./ui/AppLayout";
+import { Toaster } from "react-hot-toast";
 
 //rHtlURPug4KlOpUa - db password
 
@@ -44,6 +45,30 @@ function App() {
             <Route path="*" element={<PageNotFound />} />
           </Routes>
         </BrowserRouter>
+        <Toaster
+          position="bottom-left"
+          gutter={12}
+          containerStyle={{ margin: 8 }}
+          toastOptions={{
+            success: {
+              duration: 3000,
+              // theme: {
+              //   primary: "green",
+              //   secondary: "black",
+              // },
+            },
+            error: {
+              duration: 5000,
+            },
+            style: {
+              fontSize: 16,
+              padding: "1rem 1.5rem",
+              maxWidth: 500,
+              backgroundColor: "var(--color-grey-0)",
+              color: "var(--color-grey-700)",
+            },
+          }}
+        />
       </QueryClientProvider>
     </>
   );
