@@ -53,7 +53,7 @@ function CabinRow({ cabin }) {
     // mutationKey: "cabins",
     mutationFn: deleteCabin,
     onSuccess: () => {
-      toast.success(`Cabin number ${cabin.id} deleted`);
+      toast.success(`Cabin ${cabin.name} deleted`);
       queryClient.invalidateQueries({
         queryKey: ["cabins"],
       });
