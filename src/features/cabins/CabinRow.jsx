@@ -9,6 +9,9 @@ import {
 
 import { formatCurrency } from "../../utils/helpers.js";
 import { deleteCabin } from "../../services/apiCabins.js";
+import CreateCabinForm from "./CreateCabinForm.jsx";
+import { useState } from "react";
+import { useDeleteCabin } from "./useDeleteCabin.js";
 
 // v1
 const TableRow = styled.div`
@@ -59,37 +62,38 @@ const ButtonGroup = styled.div`
 `;
 
 function CabinRow({ cabin }) {
-  const queryClient = useQueryClient();
-  const { mutate } = useMutation({
-    // mutationKey: "cabins",
-    mutationFn: deleteCabin,
-    onSuccess: () => {
-      toast.success(`Cabin ${cabin.name} deleted`);
-      queryClient.invalidateQueries({
-        queryKey: ["cabins"],
-      });
-    },
-    onError: (error) => toast.error(error.message),
-  });
+  const [showForm, setShowForm] = useState(false);
+  const { isDeleting, deleteCabin } = useDeleteCabin();
+
   return (
-    <TableRow>
-      <Img src={cabin.image} alt={cabin.name} />
-      <Cabin>{cabin.name}</Cabin>
-      <div>Fits up to {cabin.maxCapacity} guests</div>
-      <Price>{formatCurrency(cabin.regularPrice)}</Price>
-      <Discount> {formatCurrency(cabin.discount)}</Discount>
-      <ButtonGroup>
-        <button>
-          <HiOutlinePencil />
-        </button>
-        <button onClick={() => mutate(cabin.id)}>
-          <HiOutlineTrash />
-        </button>
-        <button>
-          <HiOutlineClipboardDocument />
-        </button>
-      </ButtonGroup>
-    </TableRow>
+    <>
+      <TableRow>
+        <Img src={cabin.image} alt={cabin.name} />
+        <Cabin>{cabin.name}</Cabin>
+        <div>Fits up to {cabin.maxCapacity} guests</div>
+        <Price>{formatCurrency(cabin.regularPrice)}</Price>
+        <Discount>
+          {cabin.discount ? (
+            formatCurrency(cabin.discount)
+          ) : (
+            <span>&mdash;</span>
+          )}
+        </Discount>
+        <ButtonGroup>
+          <button onClick={() => setShowForm((showForm) => !showForm)}>
+            <HiOutlinePencil />
+            <p>{showForm}</p>
+          </button>
+          <button disabled={isDeleting} onClick={() => deleteCabin(cabin.id)}>
+            <HiOutlineTrash />
+          </button>
+          <button>
+            <HiOutlineClipboardDocument />
+          </button>
+        </ButtonGroup>
+      </TableRow>
+      {showForm && <CreateCabinForm cabinToUpdate={cabin} />}
+    </>
   );
 }
 

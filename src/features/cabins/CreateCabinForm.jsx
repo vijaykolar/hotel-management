@@ -1,4 +1,6 @@
 import { useForm } from "react-hook-form";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import toast from "react-hot-toast";
 
 import FormRow from "../../ui/FormRow";
 import Input from "../../ui/Input";
@@ -6,35 +8,70 @@ import Form from "../../ui/Form";
 import Button from "../../ui/Button";
 import FileInput from "../../ui/FileInput";
 import { Textarea } from "../../ui/Textarea";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { createCabin } from "../../services/apiCabins.js";
-import toast from "react-hot-toast";
+import { createUpdateCabin } from "../../services/apiCabins.js";
+import { useCreateCabin } from "./useCreateCabin.js";
+import { useUpdateCabin } from "./useUpdateCabin.js";
 
-function CreateCabinForm({ closeModal }) {
-  const { register, handleSubmit, formState, reset, getValues } = useForm();
+function CreateCabinForm({ cabinToUpdate = {} }) {
+  const { id: cabinId, ...cabinUpdateValues } = cabinToUpdate;
+  const isEditSession = Boolean(cabinId);
+
+  const { register, handleSubmit, formState, reset, getValues } = useForm({
+    defaultValues: isEditSession ? cabinUpdateValues : {},
+  });
   const { errors } = formState;
 
   const queryClient = useQueryClient();
+  const { isCreating, createCabin } = useCreateCabin();
+  const { isUpdating, updateCabin } = useUpdateCabin();
 
-  const { mutate, isLoading } = useMutation({
-    mutationFn: createCabin,
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({
-        queryKey: ["cabins"],
-      });
-      toast.success(`Cabin ${data[0].name} created`);
-      reset();
-    },
-    onError: (error) => toast.error(error.message),
-  });
+  // const { mutate: createCabin, isLoading: isCreating } = useMutation({
+  //   mutationFn: createUpdateCabin,
+  //   onSuccess: (data) => {
+  //     queryClient.invalidateQueries({
+  //       queryKey: ["cabins"],
+  //     });
+  //     toast.success(`Cabin ${data.name} created`);
+  //     reset();
+  //   },
+  //   onError: (error) => toast.error(error.message),
+  // });
+  // Update cabin
+  // const { mutate: updateCabin, isLoading: isUpdating } = useMutation({
+  //   mutationFn: ({ cabinData, id }) => createUpdateCabin(cabinData, id),
+  //   onSuccess: (data) => {
+  //     queryClient.invalidateQueries({
+  //       queryKey: ["cabins"],
+  //     });
+  //     toast.success(`Cabin ${data.name} updated`);
+  //     reset();
+  //   },
+  //   onError: (error) => toast.error(error.message),
+  // });
 
   function onSubmit(data) {
-    mutate({ ...data, image: data.image[0] });
+    const image = typeof data.image === "string" ? data.image : data.image[0];
+
+    if (isEditSession) {
+      updateCabin({
+        cabinData: { ...data, image },
+        id: cabinId,
+      });
+    } else {
+      createCabin(
+        { ...data, image },
+        {
+          onSuccess: () => reset(),
+        },
+      );
+    }
   }
 
   function onError(errors) {
     console.log("Failed validation!", errors);
   }
+
+  const isWorking = isCreating || isUpdating;
 
   return (
     <Form onSubmit={handleSubmit(onSubmit, onError)}>
@@ -43,6 +80,7 @@ function CreateCabinForm({ closeModal }) {
           type="text"
           id="name"
           {...register("name", { required: "This field is required" })}
+          disabled={isWorking}
         />
       </FormRow>
 
@@ -57,6 +95,7 @@ function CreateCabinForm({ closeModal }) {
               message: "Capacity should be at least 1",
             },
           })}
+          disabled={isWorking}
         />
       </FormRow>
 
@@ -71,6 +110,7 @@ function CreateCabinForm({ closeModal }) {
               message: "Price should be at least 1",
             },
           })}
+          disabled={isWorking}
         />
       </FormRow>
 
@@ -85,6 +125,7 @@ function CreateCabinForm({ closeModal }) {
               getValues().regularPrice >= value ||
               "Discount should be less than regular price",
           })}
+          disabled={isWorking}
         />
       </FormRow>
 
@@ -105,7 +146,7 @@ function CreateCabinForm({ closeModal }) {
           id="image"
           accept="image/*"
           {...register("image", {
-            required: "This field is required",
+            required: isEditSession ? false : "This field is required",
           })}
         />
       </FormRow>
@@ -114,11 +155,13 @@ function CreateCabinForm({ closeModal }) {
         <Button
           variation="secondary"
           type="reset"
-          onClick={() => closeModal?.()}
+          // onClick={() => closeModal?.()}
         >
           Cancel
         </Button>
-        <Button disabled={isLoading}>Create a cabin</Button>
+        <Button disabled={isWorking}>
+          {isEditSession ? "Save" : "Create a cabin"}
+        </Button>
       </FormRow>
     </Form>
   );
