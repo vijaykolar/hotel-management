@@ -40,6 +40,8 @@ export async function createUpdateCabin(cabin, id) {
 
   const { data, error } = await query.select().single();
 
+  if (imagePath) return data;
+
   if (error) {
     console.log("createCabin ", error);
     throw new Error("Cabin could not be created");

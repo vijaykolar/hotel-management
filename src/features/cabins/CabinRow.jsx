@@ -12,6 +12,7 @@ import { deleteCabin } from "../../services/apiCabins.js";
 import CreateCabinForm from "./CreateCabinForm.jsx";
 import { useState } from "react";
 import { useDeleteCabin } from "./useDeleteCabin.js";
+import { useCreateCabin } from "./useCreateCabin.js";
 
 // v1
 const TableRow = styled.div`
@@ -64,6 +65,17 @@ const ButtonGroup = styled.div`
 function CabinRow({ cabin }) {
   const [showForm, setShowForm] = useState(false);
   const { isDeleting, deleteCabin } = useDeleteCabin();
+  const { isCreating, createCabin } = useCreateCabin();
+  function handleDuplicate() {
+    createCabin({
+      name: `Copy of ${cabin.name}`,
+      maxCapacity: cabin.maxCapacity,
+      regularPrice: cabin.regularPrice,
+      discount: cabin.discount,
+      description: cabin.description,
+      image: cabin.image,
+    });
+  }
 
   return (
     <>
@@ -87,7 +99,7 @@ function CabinRow({ cabin }) {
           <button disabled={isDeleting} onClick={() => deleteCabin(cabin.id)}>
             <HiOutlineTrash />
           </button>
-          <button>
+          <button onClick={handleDuplicate}>
             <HiOutlineClipboardDocument />
           </button>
         </ButtonGroup>
