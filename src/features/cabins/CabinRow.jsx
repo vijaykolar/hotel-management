@@ -1,8 +1,14 @@
-import styled from "styled-components";
-import { formatCurrency } from "../../utils/helpers.js";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { deleteCabin } from "../../services/apiCabins.js";
 import toast from "react-hot-toast";
+import styled from "styled-components";
+import {
+  HiOutlineTrash,
+  HiOutlinePencil,
+  HiOutlineClipboardDocument,
+} from "react-icons/hi2";
+
+import { formatCurrency } from "../../utils/helpers.js";
+import { deleteCabin } from "../../services/apiCabins.js";
 
 // v1
 const TableRow = styled.div`
@@ -47,6 +53,11 @@ const Discount = styled.div`
   color: var(--color-green-700);
 `;
 
+const ButtonGroup = styled.div`
+  display: flex;
+  column-gap: 0.5rem;
+`;
+
 function CabinRow({ cabin }) {
   const queryClient = useQueryClient();
   const { mutate } = useMutation({
@@ -67,7 +78,17 @@ function CabinRow({ cabin }) {
       <div>Fits up to {cabin.maxCapacity} guests</div>
       <Price>{formatCurrency(cabin.regularPrice)}</Price>
       <Discount> {formatCurrency(cabin.discount)}</Discount>
-      <button onClick={() => mutate(cabin.id)}>delete</button>
+      <ButtonGroup>
+        <button>
+          <HiOutlinePencil />
+        </button>
+        <button onClick={() => mutate(cabin.id)}>
+          <HiOutlineTrash />
+        </button>
+        <button>
+          <HiOutlineClipboardDocument />
+        </button>
+      </ButtonGroup>
     </TableRow>
   );
 }
